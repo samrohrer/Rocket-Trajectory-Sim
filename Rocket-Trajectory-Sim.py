@@ -17,31 +17,48 @@ atmospheric_scale_height = 8500 #m
 altitude_list = []
 time_list = []
 
-#While loop calculating altitude
-while altitude >= 0:
-    #If statement determining whether thrust is on or off
+def calculate_thrust(time, burn_time):
     if time < burn_time:
         thrust = 2500
     else:
         thrust = 0
+    return thrust
 
-    #Exponential Atmospheric Model based on Isothermal Atmosphere
-    density_current = density_sea_level * np.exp(-altitude/atmospheric_scale_height)
+def calculate_density(density_sea_level, altitude, atmosphere_scale_height):
+    density = density_sea_level * np.exp(-altitude / atmospheric_scale_height)
+    return density
 
-    #Drag equation added as a force in acceleration
-    drag_equation = drag_coefficient * density_current * velocity ** 2 / 2 * cross_sec_area
-    #If statement deciding which direction drag force acts
+def calculate_drag(drag_coefficient, density, velocity, cross_sec_area):
+    drag = drag_coefficient * density * velocity ** 2 / 2 * cross_sec_area
     if velocity > 0:
-        drag_equation = -drag_equation
+        drag = -drag
     else:
-        drag_equation = +drag_equation
+        drag = +drag
+    return drag
 
-    acceleration = (thrust + drag_equation + mass*g)/mass
+def calculate_acceleration(thrust, drag, mass, g):
+    acceleration = (thrust + drag + mass * g) / mass
+    return acceleration
+
+def update_velocity(velocity, acceleration, dt):
     new_velocity = velocity + acceleration * dt
+    return new_velocity
+
+def update_altitude(altitude, new_velocity, dt):
     new_altitude = altitude + new_velocity * dt
+    return new_altitude
+
+#While loop calculating altitude
+while altitude >= 0:
+    thrust = calculate_thrust(time, burn_time)
+    density = calculate_density(density_sea_level, altitude, atmospheric_scale_height)
+    drag = calculate_drag(drag_coefficient, density, velocity, cross_sec_area)
+    acceleration = calculate_acceleration(thrust, drag, mass, g)
+    velocity = update_velocity(velocity, acceleration, dt)
+    altitude = update_altitude(altitude, velocity, dt)
+
     time = time + dt
-    velocity = new_velocity
-    altitude = new_altitude
+    print(altitude)
     altitude_list.append(altitude)
     time_list.append(time)
 
@@ -50,3 +67,6 @@ plt.plot(time_list, altitude_list)
 plt.xlabel("Time (s)")
 plt.ylabel("Altitude (m)")
 plt.show()
+
+
+
