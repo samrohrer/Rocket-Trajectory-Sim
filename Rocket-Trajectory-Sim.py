@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 velocity = 20
 altitude = 0
 time = 0
-mass = 5
+mass = 34
 dt = 0.1
 g = -9.81
 #Lists of Altitudes and Times for every step
@@ -14,7 +14,12 @@ time_list = []
 
 #While Loop for velocity and altitude
 while altitude >= 0:
-    acceleration = g
+    burn_time = 3.9
+    if time < burn_time:
+        thrust = 2500
+    else:
+        thrust = 0
+    acceleration = (thrust + mass*g)/mass
     new_velocity = velocity + acceleration * dt
     new_altitude = altitude + new_velocity * dt
     time = time + dt
