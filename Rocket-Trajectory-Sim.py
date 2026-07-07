@@ -1,23 +1,43 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-#Initial Constants
-velocity = 20 #m/s
-altitude = 0 #m
-time = 0 #s
-mass = 34 #kg
-dt = 0.1 #s
-g = -9.81 #m/s/s
-burn_time = 3.9 #s
-drag_coefficient = 0.5  #Cd
-cross_sec_area = 0.0193  #m^2
-density_sea_level = 1.225  #kg/m^3
-atmospheric_scale_height = 8500 #m
+class Rocket:
+    def __init__(self, mass, max_thrust, burn_time, drag_coefficient, cross_sec_area):
+        self.mass = mass
+        self.max_thrust = max_thrust
+        self.burn_time = burn_time
+        self.drag_coefficient = drag_coefficient
+        self.cross_sec_area = cross_sec_area
 
-def calculate_thrust(time, burn_time):
+class Environment:
+    def __init__(self, density_sea_level, atmospheric_scale_height, g):
+        self.density_sea_level = density_sea_level
+        self.atmospheric_scale_height = atmospheric_scale_height
+        self.g = g
+
+class FlightState:
+    def __init__(self, velocity, altitude, time):
+        self.velocity = velocity
+        self.altitude = altitude
+        self.time = time
+        self.acceleration = 0
+        self.thrust = 0
+        self.drag = 0
+        self.density = 0
+        self.time_list = []
+        self.altitude_list = []
+
+    def update_velocity(self, acceleration, dt):
+        self.velocity = self.velocity + acceleration * dt
+
+    def update_altitude(self, dt):
+        self.altitude = self.altitude + self.velocity * dt
+
+
+def calculate_thrust(time, burn_time, max_thrust):
     """Calculates the thrust of the flight simulation."""
     if time < burn_time:
-        thrust = 2500
+        thrust = max_thrust
     else:
         thrust = 0
     return thrust
@@ -41,31 +61,17 @@ def calculate_acceleration(thrust, drag, mass, g):
     acceleration = (thrust + drag + mass * g) / mass
     return acceleration
 
-def update_velocity(velocity, acceleration, dt):
-    """Updates the velocity of the flight simulation."""
-    new_velocity = velocity + acceleration * dt
-    return new_velocity
-
-def update_altitude(altitude, new_velocity, dt):
-    """Updates the altitude of the flight simulation."""
-    new_altitude = altitude + new_velocity * dt
-    return new_altitude
-
-def simulate_flight(velocity, altitude, time, mass, dt, burn_time, g, drag_coefficient, cross_sec_area, density_sea_level, atmospheric_scale_height):
-    """Runs the flight simulation loop and returns (altitude_list, time_list)."""
-    altitude_list = []
-    time_list = []
-    while altitude >= 0:
-        thrust = calculate_thrust(time, burn_time)
-        density = calculate_density(density_sea_level, altitude, atmospheric_scale_height)
-        drag = calculate_drag(drag_coefficient, density, velocity, cross_sec_area)
-        acceleration = calculate_acceleration(thrust, drag, mass, g)
-        velocity = update_velocity(velocity, acceleration, dt)
-        altitude = update_altitude(altitude, velocity, dt)
-        time = time + dt
-        altitude_list.append(altitude)
-        time_list.append(time)
-    return time_list, altitude_list
+def simulate_flight(rocket, environment, state, dt):
+    while state.altitude >= 0:
+        state.thrust = calculate_thrust(state.time, rocket.burn_time, rocket.max_thrust)
+        state.density = calculate_density(environment.density_sea_level, state.altitude, environment.atmospheric_scale_height)
+        state.drag = calculate_drag(rocket.drag_coefficient, state.density, state.velocity, rocket.cross_sec_area)
+        state.acceleration = calculate_acceleration(state.thrust, state.drag, rocket.mass, environment.g)
+        state.update_velocity(state.acceleration, dt)
+        state.update_altitude(dt)
+        state.time = state.time + dt
+        state.altitude_list.append(state.altitude)
+        state.time_list.append(state.time)
 
 def plot_results(time_list, altitude_list):
     """Plots the results of the flight simulation."""
@@ -76,12 +82,17 @@ def plot_results(time_list, altitude_list):
 
 def main():
     """Runs the flight simulation loop."""
-    time_list, altitude_list = simulate_flight(velocity, altitude, time, mass, dt, burn_time, g, drag_coefficient, cross_sec_area,
-                    density_sea_level, atmospheric_scale_height)
-    plot_results(time_list, altitude_list)
+    rocket = Rocket(mass=34, max_thrust=2500, burn_time=3.9, drag_coefficient=0.5, cross_sec_area=0.0193)
+    environment = Environment(density_sea_level=1.225, atmospheric_scale_height=8500, g=-9.81)
+    state = FlightState(velocity=20, altitude=0, time=0)
+    dt = 0.1
+    simulate_flight(rocket, environment, state, dt)
+    plot_results(state.time_list, state.altitude_list)
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
