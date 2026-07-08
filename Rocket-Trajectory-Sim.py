@@ -11,6 +11,7 @@ class Rocket:
         data = np.genfromtxt('data/AeroTech_M2500T.csv', delimiter=',', skip_header=5)
         self.thrust_times = data[:, 0]
         self.thrust_values = data[:, 1]
+        self.impulse_total = np.trapezoid(self.thrust_values, self.thrust_times)
 
     def get_thrust_at(self, t):
         return np.interp(t, self.thrust_times, self.thrust_values, right=0)
@@ -32,6 +33,7 @@ class FlightState:
         self.thrust = 0
         self.drag = 0
         self.density = 0
+        self.impulse = 0
         self.time_list = []
         self.altitude_list = []
         self.velocity_list = []
@@ -56,10 +58,10 @@ def calculate_density(density_sea_level, altitude, atmospheric_scale_height):
     density = density_sea_level * np.exp(-altitude / atmospheric_scale_height)
     return density
 
-def calculate_mass(dry_mass, propellant_mass, burn_time, time):
+def calculate_mass(dry_mass, propellant_mass, burn_time, time, impulse, impulse_total):
     """Calculates the current mass of the rocket."""
     if time < burn_time:
-        mass = dry_mass + propellant_mass * (1-time/burn_time)
+        mass = dry_mass + propellant_mass * (1-impulse/impulse_total)
     else:
         mass = dry_mass
     return mass
@@ -82,7 +84,8 @@ def simulate_flight(rocket, environment, state, dt):
     while state.altitude >= 0:
         state.thrust = calculate_thrust(state.time, rocket)
         state.density = calculate_density(environment.density_sea_level, state.altitude, environment.atmospheric_scale_height)
-        state.mass = calculate_mass(rocket.dry_mass, rocket.propellant_mass, rocket.burn_time, state.time)
+        state.impulse += state.thrust * dt
+        state.mass = calculate_mass(rocket.dry_mass, rocket.propellant_mass, rocket.burn_time, state.time, state.impulse, rocket.impulse_total)
         state.drag = calculate_drag(rocket.drag_coefficient, state.density, state.velocity, rocket.cross_sec_area)
         state.acceleration = calculate_acceleration(state.thrust, state.drag, state.mass, environment.g)
         state.altitude_list.append(state.altitude)
@@ -108,9 +111,12 @@ def main():
     rocket = Rocket(dry_mass=29.9, propellant_mass=4.531, burn_time=3.9, drag_coefficient=0.5, cross_sec_area=0.0193)
     environment = Environment(density_sea_level=1.225, atmospheric_scale_height=8500, g=-9.81)
     state = FlightState(velocity=20, altitude=0, time=0)
-    dt = 0.1
+    dt = 0.01
     simulate_flight(rocket, environment, state, dt)
     plot_results(state.time_list, state.altitude_list)
+    print(max(state.altitude_list))
+    print(state.impulse)
+    print(rocket.impulse_total)
 
 if __name__ == "__main__":
     main()
