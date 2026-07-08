@@ -34,6 +34,11 @@ class FlightState:
         self.density = 0
         self.time_list = []
         self.altitude_list = []
+        self.velocity_list = []
+        self.acceleration_list = []
+        self.thrust_list = []
+        self.drag_list = []
+        self.mass_list = []
 
     def update_velocity(self, acceleration, dt):
         self.velocity = self.velocity + acceleration * dt
@@ -80,11 +85,16 @@ def simulate_flight(rocket, environment, state, dt):
         state.mass = calculate_mass(rocket.dry_mass, rocket.propellant_mass, rocket.burn_time, state.time)
         state.drag = calculate_drag(rocket.drag_coefficient, state.density, state.velocity, rocket.cross_sec_area)
         state.acceleration = calculate_acceleration(state.thrust, state.drag, state.mass, environment.g)
+        state.altitude_list.append(state.altitude)
+        state.time_list.append(state.time)
+        state.velocity_list.append(state.velocity)
+        state.acceleration_list.append(state.acceleration)
+        state.thrust_list.append(state.thrust)
+        state.drag_list.append(state.drag)
+        state.mass_list.append(state.mass)
         state.update_velocity(state.acceleration, dt)
         state.update_altitude(dt)
         state.time = state.time + dt
-        state.altitude_list.append(state.altitude)
-        state.time_list.append(state.time)
 
 def plot_results(time_list, altitude_list):
     """Plots the results of the flight simulation."""
