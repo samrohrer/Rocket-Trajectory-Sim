@@ -142,12 +142,13 @@ def plot_flight_summary(state, rocket):
 
 def main():
     """Runs the flight simulation loop."""
-    rocket = Rocket(dry_mass=29.9, propellant_mass=4.531, burn_time=3.9, drag_coefficient=0.5, cross_sec_area=0.0193)
+    rocket = Rocket(dry_mass=22, propellant_mass=4.717361, burn_time=3.9, drag_coefficient=0.447, cross_sec_area=0.01824)
     environment = Environment(density_sea_level=1.225, atmospheric_scale_height=8500, g=-9.81)
-    state = FlightState(velocity=20, altitude=0, time=0)
+    state = FlightState(velocity=30, altitude=0, time=0)
     dt = 0.01
     simulate_flight(rocket, environment, state, dt)
     plot_flight_summary(state, rocket)
+    print(np.max(state.altitude_list))
 
 if __name__ == "__main__":
     main()
