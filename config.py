@@ -1,0 +1,19 @@
+# Physical/Environmental Constants
+STANDARD_GRAVITY = -9.81
+SEA_LEVEL_DENSITY = 1.225
+ATMOSPHERIC_SCALE_HEIGHT = 8500
+
+# Rocket Specifications (Currently Spartacus MKIII)
+DRY_MASS = 22
+PROPELLANT_MASS = 4.717361
+BURN_TIME = 3.9
+DRAG_COEFFICIENT = 0.447
+CROSS_SEC_AREA = 0.01824
+CSV_FILE_NAME = 'data/AeroTech_M2500T.csv'
+CSV_HEADER_ROWS = 5
+
+# Simulation Setup/Initial Conditions
+VELOCITY = 30
+ALTITUDE = 0
+TIME = 0
+DT = 0.01
