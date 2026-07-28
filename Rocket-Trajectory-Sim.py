@@ -1,6 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Physical/Environmental Constants
+STANDARD_GRAVITY = -9.81
+SEA_LEVEL_DENSITY = 1.225
+ATMOSPHERIC_SCALE_HEIGHT = 8500
+
+# Rocket Specifications (Currently Spartacus MKIII)
+DRY_MASS = 22
+PROPELLANT_MASS = 4.717361
+BURN_TIME = 3.9
+DRAG_COEFFICIENT = 0.447
+CROSS_SEC_AREA = 0.01824
+CSV_FILE_NAME = 'data/AeroTech_M2500T.csv'
+CSV_HEADER_ROWS = 5
+
+# Simulation Setup/Initial Conditions
+VELOCITY = 30
+ALTITUDE = 0
+TIME = 0
+DT = 0.01
+
+
 class Rocket:
     def __init__(self, burn_time: float, drag_coefficient: float, cross_sec_area: float, dry_mass: float, propellant_mass: float) -> None:
         self.burn_time: float = burn_time
@@ -8,7 +29,7 @@ class Rocket:
         self.cross_sec_area: float = cross_sec_area
         self.dry_mass: float = dry_mass
         self.propellant_mass: float = propellant_mass
-        data = np.genfromtxt('data/AeroTech_M2500T.csv', delimiter=',', skip_header=5)
+        data = np.genfromtxt(CSV_FILE_NAME, delimiter=',', skip_header=CSV_HEADER_ROWS)
         self.thrust_times: np.ndarray = data[:, 0]
         self.thrust_values: np.ndarray = data[:, 1]
         self.impulse_total: float = np.trapezoid(self.thrust_values, self.thrust_times)
@@ -135,14 +156,12 @@ def plot_flight_summary(state: FlightState, rocket: Rocket) -> None:
 
 def main() -> None:
     """Runs the flight simulation loop."""
-    rocket = Rocket(dry_mass=22, propellant_mass=4.717361, burn_time=3.9, drag_coefficient=0.447, cross_sec_area=0.01824)
-    environment = Environment(density_sea_level=1.225, atmospheric_scale_height=8500, g=-9.81)
-    state = FlightState(velocity=30, altitude=0, time=0)
-    dt = 0.01
-    simulate_flight(rocket, environment, state, dt)
+    rocket = Rocket(dry_mass=DRY_MASS, propellant_mass=PROPELLANT_MASS, burn_time=BURN_TIME, drag_coefficient=DRAG_COEFFICIENT, cross_sec_area=CROSS_SEC_AREA)
+    environment = Environment(density_sea_level=SEA_LEVEL_DENSITY, atmospheric_scale_height=ATMOSPHERIC_SCALE_HEIGHT, g=STANDARD_GRAVITY)
+    state = FlightState(velocity=VELOCITY, altitude=ALTITUDE, time=TIME)
+    simulate_flight(rocket, environment, state, dt=DT)
     plot_flight_summary(state, rocket)
     print(np.max(state.altitude_list))
 
 if __name__ == "__main__":
     main()
-
