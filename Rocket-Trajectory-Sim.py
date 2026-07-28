@@ -2,63 +2,63 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Rocket:
-    def __init__(self, burn_time, drag_coefficient, cross_sec_area, dry_mass, propellant_mass):
-        self.burn_time = burn_time
-        self.drag_coefficient = drag_coefficient
-        self.cross_sec_area = cross_sec_area
-        self.dry_mass = dry_mass
-        self.propellant_mass = propellant_mass
+    def __init__(self, burn_time: float, drag_coefficient: float, cross_sec_area: float, dry_mass: float, propellant_mass: float) -> None:
+        self.burn_time: float = burn_time
+        self.drag_coefficient: float = drag_coefficient
+        self.cross_sec_area: float = cross_sec_area
+        self.dry_mass: float = dry_mass
+        self.propellant_mass: float = propellant_mass
         data = np.genfromtxt('data/AeroTech_M2500T.csv', delimiter=',', skip_header=5)
-        self.thrust_times = data[:, 0]
-        self.thrust_values = data[:, 1]
-        self.impulse_total = np.trapezoid(self.thrust_values, self.thrust_times)
+        self.thrust_times: np.ndarray = data[:, 0]
+        self.thrust_values: np.ndarray = data[:, 1]
+        self.impulse_total: float = np.trapezoid(self.thrust_values, self.thrust_times)
 
-    def get_thrust_at(self, t):
+    def get_thrust_at(self, t: float) -> float:
         return np.interp(t, self.thrust_times, self.thrust_values, right=0)
 
 
 class Environment:
-    def __init__(self, density_sea_level, atmospheric_scale_height, g):
-        self.density_sea_level = density_sea_level
-        self.atmospheric_scale_height = atmospheric_scale_height
-        self.g = g
+    def __init__(self, density_sea_level: float, atmospheric_scale_height: float, g: float) -> None:
+        self.density_sea_level: float = density_sea_level
+        self.atmospheric_scale_height: float = atmospheric_scale_height
+        self.g: float = g
 
 class FlightState:
-    def __init__(self, velocity, altitude, time):
-        self.velocity = velocity
-        self.altitude = altitude
-        self.time = time
-        self.mass = 0
-        self.acceleration = 0
-        self.thrust = 0
-        self.drag = 0
-        self.density = 0
-        self.impulse = 0
-        self.time_list = []
-        self.altitude_list = []
-        self.velocity_list = []
-        self.acceleration_list = []
-        self.thrust_list = []
-        self.drag_list = []
-        self.mass_list = []
+    def __init__(self, velocity: float, altitude: float, time: float) -> None:
+        self.velocity: float = velocity
+        self.altitude: float = altitude
+        self.time: float = time
+        self.mass: float = 0
+        self.acceleration: float = 0
+        self.thrust: float = 0
+        self.drag: float = 0
+        self.density: float = 0
+        self.impulse: float = 0
+        self.time_list: list[float] = []
+        self.altitude_list: list[float] = []
+        self.velocity_list: list[float] = []
+        self.acceleration_list: list[float] = []
+        self.thrust_list: list[float] = []
+        self.drag_list: list[float] = []
+        self.mass_list: list[float] = []
 
-    def update_velocity(self, acceleration, dt):
+    def update_velocity(self, acceleration: float, dt: float) -> None:
         self.velocity = self.velocity + acceleration * dt
 
-    def update_altitude(self, dt):
+    def update_altitude(self, dt: float) -> None:
         self.altitude = self.altitude + self.velocity * dt
 
-def calculate_thrust(time, rocket):
+def calculate_thrust(time: float, rocket: Rocket) -> float:
     """Calculates the thrust of the flight simulation."""
-    thrust = rocket.get_thrust_at(time)
+    thrust: float = rocket.get_thrust_at(time)
     return thrust
 
-def calculate_density(density_sea_level, altitude, atmospheric_scale_height):
+def calculate_density(density_sea_level: float, altitude: float, atmospheric_scale_height: float) -> float:
     """Calculates the density of the flight simulation."""
-    density = density_sea_level * np.exp(-altitude / atmospheric_scale_height)
+    density: float = density_sea_level * np.exp(-altitude / atmospheric_scale_height)
     return density
 
-def calculate_mass(dry_mass, propellant_mass, burn_time, time, impulse, impulse_total):
+def calculate_mass(dry_mass: float, propellant_mass: float, burn_time: float, time: float, impulse: float, impulse_total: float) -> float:
     """Calculates the current mass of the rocket."""
     if time < burn_time:
         mass = dry_mass + propellant_mass * (1-impulse/impulse_total)
@@ -66,21 +66,21 @@ def calculate_mass(dry_mass, propellant_mass, burn_time, time, impulse, impulse_
         mass = dry_mass
     return mass
 
-def calculate_drag(drag_coefficient, density, velocity, cross_sec_area):
+def calculate_drag(drag_coefficient: float, density: float, velocity: float, cross_sec_area: float) -> float:
     """Calculates the drag of the flight simulation."""
-    drag = drag_coefficient * density * velocity ** 2 / 2 * cross_sec_area
+    drag: float = drag_coefficient * density * velocity ** 2 / 2 * cross_sec_area
     if velocity > 0:
         drag = -drag
     else:
         drag = +drag
     return drag
 
-def calculate_acceleration(thrust, drag, mass, g):
+def calculate_acceleration(thrust: float, drag: float, mass: float, g: float) -> float:
     """Calculates the acceleration of the flight simulation."""
-    acceleration = (thrust + drag + mass * g) / mass
+    acceleration: float = (thrust + drag + mass * g) / mass
     return acceleration
 
-def simulate_flight(rocket, environment, state, dt):
+def simulate_flight(rocket: Rocket, environment: Environment, state: FlightState, dt: float) -> None:
     while state.altitude >= 0:
         state.thrust = calculate_thrust(state.time, rocket)
         state.density = calculate_density(environment.density_sea_level, state.altitude, environment.atmospheric_scale_height)
@@ -99,7 +99,7 @@ def simulate_flight(rocket, environment, state, dt):
         state.update_altitude(dt)
         state.time = state.time + dt
 
-def plot_flight_summary(state, rocket):
+def plot_flight_summary(state: FlightState, rocket: Rocket) -> None:
     """Plots flight parameters vs time in a multi-panel figure."""
     apogee_index = np.argmax(state.altitude_list)
     apogee_time = state.time_list[apogee_index]
@@ -155,5 +155,5 @@ if __name__ == "__main__":
 
 
 
-
+T
 
