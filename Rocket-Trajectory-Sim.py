@@ -16,12 +16,37 @@ class Rocket:
     def get_thrust_at(self, t: float) -> float:
         return np.interp(t, self.thrust_times, self.thrust_values, right=0)
 
+    def calculate_mass(self, time: float, impulse: float) -> float:
+        if time < self.burn_time:
+            mass = self.dry_mass + self.propellant_mass * (1 - impulse / self.impulse_total)
+        else:
+            mass = self.dry_mass
+        return mass
+
+    def calculate_drag(self, density: float, velocity: float) -> float:
+        """Calculates the drag of the flight simulation."""
+        drag: float = self.drag_coefficient * density * velocity ** 2 / 2 * self.cross_sec_area
+        if velocity > 0:
+            drag = -drag
+        else:
+            drag = +drag
+        return drag
 
 class Environment:
     def __init__(self, density_sea_level: float, atmospheric_scale_height: float, g: float) -> None:
         self.density_sea_level: float = density_sea_level
         self.atmospheric_scale_height: float = atmospheric_scale_height
         self.g: float = g
+
+    def calculate_density(self, altitude: float) -> float:
+        """Calculates the density of the flight simulation."""
+        density: float = self.density_sea_level * np.exp(-altitude / self.atmospheric_scale_height)
+        return density
+
+    def calculate_acceleration(self, thrust: float, drag: float, mass: float) -> float:
+        """Calculates the acceleration of the flight simulation."""
+        acceleration: float = (thrust + drag + mass * self.g) / mass
+        return acceleration
 
 class FlightState:
     def __init__(self, velocity: float, altitude: float, time: float) -> None:
@@ -48,46 +73,14 @@ class FlightState:
     def update_altitude(self, dt: float) -> None:
         self.altitude = self.altitude + self.velocity * dt
 
-def calculate_thrust(time: float, rocket: Rocket) -> float:
-    """Calculates the thrust of the flight simulation."""
-    thrust: float = rocket.get_thrust_at(time)
-    return thrust
-
-def calculate_density(density_sea_level: float, altitude: float, atmospheric_scale_height: float) -> float:
-    """Calculates the density of the flight simulation."""
-    density: float = density_sea_level * np.exp(-altitude / atmospheric_scale_height)
-    return density
-
-def calculate_mass(dry_mass: float, propellant_mass: float, burn_time: float, time: float, impulse: float, impulse_total: float) -> float:
-    """Calculates the current mass of the rocket."""
-    if time < burn_time:
-        mass = dry_mass + propellant_mass * (1-impulse/impulse_total)
-    else:
-        mass = dry_mass
-    return mass
-
-def calculate_drag(drag_coefficient: float, density: float, velocity: float, cross_sec_area: float) -> float:
-    """Calculates the drag of the flight simulation."""
-    drag: float = drag_coefficient * density * velocity ** 2 / 2 * cross_sec_area
-    if velocity > 0:
-        drag = -drag
-    else:
-        drag = +drag
-    return drag
-
-def calculate_acceleration(thrust: float, drag: float, mass: float, g: float) -> float:
-    """Calculates the acceleration of the flight simulation."""
-    acceleration: float = (thrust + drag + mass * g) / mass
-    return acceleration
-
 def simulate_flight(rocket: Rocket, environment: Environment, state: FlightState, dt: float) -> None:
     while state.altitude >= 0:
-        state.thrust = calculate_thrust(state.time, rocket)
-        state.density = calculate_density(environment.density_sea_level, state.altitude, environment.atmospheric_scale_height)
+        state.thrust = rocket.get_thrust_at(state.time)
+        state.density = environment.calculate_density(state.altitude)
         state.impulse += state.thrust * dt
-        state.mass = calculate_mass(rocket.dry_mass, rocket.propellant_mass, rocket.burn_time, state.time, state.impulse, rocket.impulse_total)
-        state.drag = calculate_drag(rocket.drag_coefficient, state.density, state.velocity, rocket.cross_sec_area)
-        state.acceleration = calculate_acceleration(state.thrust, state.drag, state.mass, environment.g)
+        state.mass = rocket.calculate_mass(state.time, state.impulse)
+        state.drag = rocket.calculate_drag(state.density, state.velocity)
+        state.acceleration = environment.calculate_acceleration(state.thrust, state.drag, state.mass)
         state.altitude_list.append(state.altitude)
         state.time_list.append(state.time)
         state.velocity_list.append(state.velocity)
@@ -140,7 +133,7 @@ def plot_flight_summary(state: FlightState, rocket: Rocket) -> None:
     plt.tight_layout()
     plt.show()
 
-def main():
+def main() -> None:
     """Runs the flight simulation loop."""
     rocket = Rocket(dry_mass=22, propellant_mass=4.717361, burn_time=3.9, drag_coefficient=0.447, cross_sec_area=0.01824)
     environment = Environment(density_sea_level=1.225, atmospheric_scale_height=8500, g=-9.81)
@@ -152,8 +145,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-T
 
