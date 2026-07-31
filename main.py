@@ -12,6 +12,7 @@ def main() -> None:
     simulate_flight(rocket, environment, state, dt=DT)
     plot_flight_summary(state, rocket)
     print(np.max(state.altitude_list))
+    print(np.max(state.velocity_list))
 
 if __name__ == "__main__":
     main()

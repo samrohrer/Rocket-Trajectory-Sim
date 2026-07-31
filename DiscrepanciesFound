@@ -1,9 +1,0 @@
-Discrepancies found in Validation Phase 4 (OpenRocket):
-1. Constant Drag Coefficient is insufficient, especially near burnout
-    - Implement Mach-dependent drag curve
-2. Altitude in Python simulation varies by almost 1000 meters
-    - OpenRocket Altitude: 2848 m
-    - Python Altitude: ~3875 m
-    - Due to drag coefficient
-3. Mass and Cross-Sec-Area used for rocket was not precise to rocket that is being modeled (Spartan Competition rocket)
-    - Fixed using known numbers from reports
