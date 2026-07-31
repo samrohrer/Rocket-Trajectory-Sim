@@ -17,18 +17,20 @@ A 1D rocket flight trajectory simulator built from scratch in Python, modeling a
 Simulator output was compared against an independently-built OpenRocket
 model of the same vehicle
 
-| Metric | Initial | Corrected | OpenRocket |
-|---|---|---|---|
-| Liftoff mass | 26.7 kg | 30.0 kg | 30.06 kg |
-| Burnout velocity | 325 m/s | 280 m/s | 266 m/s |
-| Apogee | 3758 m | 2857 m | 2853 m |
+| Metric | Initial | Corrected | OpenRocket | Final Error |
+| ------ | ------- |-----------| ---------- |-------------|
+| Liftoff Mass | 26.7 kg | 30 kg     | 30.06 kg | 0.2%        |
+| Burnout Velocity | 325 m/s | 265.6 m/s | 266 m/s | -0.15%      |
+| Apogee | 3758 m | 2836.6 m  | 2853 m | -0.5%       |
 
-Validation surfaced a mass-model error in which the motor casing
+Validation surfaced two modeling errors. One, in which the motor casing
 (3.494 kg) was omitted — the model treated propellant as the entire
-motor mass. Correcting this reduced apogee error from +32% to +20%.
-A remaining drag discrepancy is still under investigation.
+motor mass. Correcting this reduced apogee error from +32% to +20%. The second
+was the simulation not having a launch pad, requiring an artificial 30 m/s 
+initial velocity to run. Fixing that brought the apogee error with 0.5% and the 
+peak velocity within 0.15% of OpenRocket.
 
-Full methodology, resolved discrepancies, and open items:
+Full methodology and resolved discrepancies:
 [VALIDATION.md](VALIDATION.md)
 
 ## Architecture

@@ -11,8 +11,9 @@ def main() -> None:
     state = FlightState(velocity=VELOCITY, altitude=ALTITUDE, time=TIME)
     simulate_flight(rocket, environment, state, dt=DT)
     plot_flight_summary(state, rocket)
-    print(np.max(state.altitude_list))
-    print(np.max(state.velocity_list))
+    print(f"Apogee: {np.max(state.altitude_list):.1f} m")
+    print(f"Max Velocity: {np.max(state.velocity_list):.1f} m/s")
+    print(f"Total impulse: {np.trapezoid(rocket.thrust_values, rocket.thrust_times):.1f} N·s")
 
 if __name__ == "__main__":
     main()
