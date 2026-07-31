@@ -4,8 +4,7 @@ import numpy as np
 class Rocket:
     """Records the rocket attributes associated with the rocket body and motor
     Thrust curve is loaded from a CSV file"""
-    def __init__(self, burn_time: float, drag_coefficient: float, cross_sec_area: float, dry_mass: float, propellant_mass: float) -> None:
-        self.burn_time: float = burn_time
+    def __init__(self, drag_coefficient: float, cross_sec_area: float, dry_mass: float, propellant_mass: float) -> None:
         self.drag_coefficient: float = drag_coefficient
         self.cross_sec_area: float = cross_sec_area
         self.dry_mass: float = dry_mass
@@ -19,13 +18,10 @@ class Rocket:
         """Determines the thrust value of the simulation at a given time using np.interp function, interpolating within the motor's thrust curve data."""
         return np.interp(t, self.thrust_times, self.thrust_values, right=0)
 
-    def calculate_mass(self, time: float, impulse: float) -> float:
+    def calculate_mass(self, impulse: float) -> float:
         """Calculates the variable mass of the rocket during flight simulation using a mass depletion model: Mass depletes proportionally to consumed impulse
-        Propellant mass is added to the total mass of the rocket, using a shrinking value, until the time of the simulation exceeds the motor's burn_time."""
-        if time < self.burn_time:
-            mass = self.dry_mass + self.propellant_mass * (1 - impulse / self.impulse_total)
-        else:
-            mass = self.dry_mass
+        Propellant mass is added to the total mass of the rocket, using a shrinking value until the impulse equation cancels out and reaches the total impulse"""
+        mass = self.dry_mass + self.propellant_mass * np.clip((1 - impulse / self.impulse_total), 0, 1)
         return mass
 
     def calculate_drag(self, density: float, velocity: float) -> float:

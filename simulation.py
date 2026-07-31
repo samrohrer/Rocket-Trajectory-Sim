@@ -11,7 +11,7 @@ def simulate_flight(rocket: Rocket, environment: Environment, state: FlightState
         state.thrust = rocket.get_thrust_at(state.time)
         state.density = environment.calculate_density(state.altitude)
         state.impulse += state.thrust * dt
-        state.mass = rocket.calculate_mass(state.time, state.impulse)
+        state.mass = rocket.calculate_mass(state.impulse)
         state.drag = rocket.calculate_drag(state.density, state.velocity)
         state.acceleration = environment.calculate_acceleration(state.thrust, state.drag, state.mass)
         state.altitude_list.append(state.altitude)
