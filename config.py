@@ -5,11 +5,8 @@ ATMOSPHERIC_SCALE_HEIGHT = 8500
 
 # Rocket Specifications (Currently Spartacus MKIII)
 DRY_MASS = 25.353
-PROPELLANT_MASS = 4.711
 DRAG_COEFFICIENT = 0.52
 CROSS_SEC_AREA = 0.01824
-CSV_FILE_NAME = 'data/AeroTech_M2500T.csv'
-CSV_HEADER_ROWS = 5
 
 # Simulation Setup/Initial Conditions
 VELOCITY = 0

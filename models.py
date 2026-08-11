@@ -1,18 +1,57 @@
-from config import CSV_HEADER_ROWS, CSV_FILE_NAME
 import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class Motor:
+    """Records the motor attributes associated with the rocket's motor
+    Holds the propellant mass, motor mass, thrust curve data, and calculates the total impulse using trapezoidal integration of the thrust curve
+    motor_mass is total mass of the motor including propellant"""
+    propellant_mass: float
+    motor_mass: float
+    times: np.ndarray
+    thrusts: np.ndarray
+
+    def __post_init__(self) -> None:
+        self.impulse_total: float = np.trapezoid(self.thrusts, self.times)
+
+
+def load_motor(filepath: str) -> Motor:
+    """Reads motor format from .eng file; lines starting with ";" are comments and ignored, first non-comment line is a header, subsequent lines are time and thrust values
+    [4] and [5] are propellant mass and motor mass, respectively, which are read from the first non-comment line"""
+    propellant_mass = None
+    motor_mass = None
+    times = []
+    thrusts = []
+
+    with open(filepath) as f:
+        for line in f:
+            if line.startswith(";"):
+                continue
+            fields = line.split()
+            if propellant_mass is None:
+                propellant_mass, motor_mass = float(fields[4]), float(fields[5])
+            else:
+                times.append(float(fields[0]))
+                thrusts.append(float(fields[1]))
+
+    return Motor(
+        propellant_mass=propellant_mass,
+        motor_mass=motor_mass,
+        times=np.array(times),
+        thrusts=np.array(thrusts),
+    )
 
 class Rocket:
     """Records the rocket attributes associated with the rocket body and motor
-    Thrust curve is loaded from a CSV file"""
-    def __init__(self, drag_coefficient: float, cross_sec_area: float, dry_mass: float, propellant_mass: float) -> None:
+    Holds current values such as mass and historical values that are stored in lists"""
+    def __init__(self, drag_coefficient: float, cross_sec_area: float, dry_mass: float, motor: Motor) -> None:
         self.drag_coefficient: float = drag_coefficient
         self.cross_sec_area: float = cross_sec_area
         self.dry_mass: float = dry_mass
-        self.propellant_mass: float = propellant_mass
-        data = np.genfromtxt(CSV_FILE_NAME, delimiter=',', skip_header=CSV_HEADER_ROWS)
-        self.thrust_times: np.ndarray = data[:, 0]
-        self.thrust_values: np.ndarray = data[:, 1]
-        self.impulse_total: float = np.trapezoid(self.thrust_values, self.thrust_times)
+        self.propellant_mass: float = motor.propellant_mass
+        self.thrust_times: np.ndarray = motor.times
+        self.thrust_values: np.ndarray = motor.thrusts
+        self.impulse_total: float = motor.impulse_total
 
     def get_thrust_at(self, t: float) -> float:
         """Determines the thrust value of the simulation at a given time using np.interp function, interpolating within the motor's thrust curve data."""
