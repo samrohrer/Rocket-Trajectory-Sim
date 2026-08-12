@@ -121,6 +121,19 @@ class Environment:
         acceleration: float = (thrust + drag + mass * self.g) / mass
         return acceleration
 
+    def calculate_temperature(self, altitude: float) -> float:
+        """Calculates the temperature at a given altitude using the International Standard Atmosphere (ISA) model: T = 288.15 - 0.0065 * altitude"""
+        T = 288.15 - 0.0065 * altitude
+        return T
+
+    def calculate_speed_of_sound(self, altitude: float) -> float:
+        """Calculates the speed of sound at a given altitude using the formula: a = 20.01 * sqrt(T)
+        20.01 is derived from the formula a = sqrt(gamma * R * T)
+        Gamma is the adiabatic index (1.4 for air) and R is the specific gas constant for air (286 J/(kg·K)) both found from NASA articles on the speed of sound"""
+        T = self.calculate_temperature(altitude)
+        a = 20.01 * np.sqrt(T)
+        return a
+
 class FlightState:
     """Records the flight values associated with the rocket's flight simulation state
     Holds current values such as velocity and historical values that are stored in lists"""
