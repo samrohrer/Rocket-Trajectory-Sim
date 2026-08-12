@@ -153,6 +153,7 @@ class FlightState:
         self.acceleration: float = 0
         self.thrust: float = 0
         self.drag: float = 0
+        self.mach: float = 0
         self.density: float = 0
         self.impulse: float = 0
         self.time_list: list[float] = []
@@ -161,6 +162,7 @@ class FlightState:
         self.acceleration_list: list[float] = []
         self.thrust_list: list[float] = []
         self.drag_list: list[float] = []
+        self.mach_list: list[float] = []
         self.mass_list: list[float] = []
 
     def update_velocity(self, acceleration: float, dt: float) -> None:
