@@ -14,7 +14,6 @@ class Motor:
     def __post_init__(self) -> None:
         self.impulse_total: float = np.trapezoid(self.thrusts, self.times)
 
-
 def load_motor(filepath: str) -> Motor:
     """Reads motor format from .eng file; lines starting with ";" are comments and ignored, first non-comment line is a header, subsequent lines are time and thrust values
     [4] and [5] are propellant mass and motor mass, respectively, which are read from the first non-comment line"""
@@ -39,6 +38,37 @@ def load_motor(filepath: str) -> Motor:
         motor_mass=motor_mass,
         times=np.array(times),
         thrusts=np.array(thrusts),
+    )
+
+@dataclass
+class CdCurve:
+    drag_coefficient: np.ndarray
+    mach_numbers: np.ndarray
+
+def load_cd_curve(filepath: str) -> CdCurve:
+    drag_coefficient = []
+    mach_numbers = []
+
+    with open(filepath) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            fields = line.split(",")
+            drag_coefficient.append(float(fields[0]))
+            mach_numbers.append(float(fields[1]))
+
+    drag_coefficient = np.array(drag_coefficient)
+    mach_numbers = np.array(mach_numbers)
+    sort_order = np.argsort(mach_numbers)
+    drag_coefficient = drag_coefficient[sort_order]
+    mach_numbers = mach_numbers[sort_order]
+
+    mach_numbers, keep_indices = np.unique(mach_numbers, return_index=True)
+    drag_coefficient = drag_coefficient[keep_indices]
+
+    return CdCurve(
+        drag_coefficient=drag_coefficient,
+        mach_numbers=mach_numbers
     )
 
 class Rocket:

@@ -1,4 +1,4 @@
-from models import Rocket, Environment, FlightState, load_motor
+from models import Rocket, Environment, FlightState, load_motor, load_cd_curve
 from config import DRY_MASS, DRAG_COEFFICIENT, CROSS_SEC_AREA, SEA_LEVEL_DENSITY, ATMOSPHERIC_SCALE_HEIGHT, STANDARD_GRAVITY, VELOCITY, ALTITUDE, TIME, DT, N_TRIALS
 from plotting import plot_flight_summary, plot_monte_carlo_results
 from simulation import simulate_flight
@@ -20,4 +20,8 @@ def main() -> None:
     print(f"Total impulse: {motor.impulse_total:.1f} N·s")
 
 if __name__ == "__main__":
+    curve = load_cd_curve("data/mkiii_cd_mach.csv")  # your actual path
+    print(curve.mach_numbers[:5])
+    print(curve.drag_coefficient[:5])
+    print(len(curve.mach_numbers))
     main()
