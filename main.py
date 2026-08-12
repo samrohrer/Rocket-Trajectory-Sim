@@ -1,7 +1,8 @@
 from models import Rocket, Environment, FlightState, load_motor
-from config import DRY_MASS, DRAG_COEFFICIENT, CROSS_SEC_AREA, SEA_LEVEL_DENSITY, ATMOSPHERIC_SCALE_HEIGHT, STANDARD_GRAVITY, VELOCITY, ALTITUDE, TIME, DT
-from plotting import plot_flight_summary
+from config import DRY_MASS, DRAG_COEFFICIENT, CROSS_SEC_AREA, SEA_LEVEL_DENSITY, ATMOSPHERIC_SCALE_HEIGHT, STANDARD_GRAVITY, VELOCITY, ALTITUDE, TIME, DT, N_TRIALS
+from plotting import plot_flight_summary, plot_monte_carlo_results
 from simulation import simulate_flight
+from monte_carlo import run_monte_carlo
 import numpy as np
 
 def main() -> None:
@@ -12,6 +13,8 @@ def main() -> None:
     state = FlightState(velocity=VELOCITY, altitude=ALTITUDE, time=TIME)
     simulate_flight(rocket, environment, state, dt=DT)
     plot_flight_summary(state, rocket)
+    apogee_list, max_velocity_list = run_monte_carlo(motor, DRY_MASS, DRAG_COEFFICIENT, CROSS_SEC_AREA, SEA_LEVEL_DENSITY, N_TRIALS)
+    plot_monte_carlo_results(apogee_list, max_velocity_list)
     print(f"Apogee: {np.max(state.altitude_list):.1f} m")
     print(f"Max Velocity: {np.max(state.velocity_list):.1f} m/s")
     print(f"Total impulse: {motor.impulse_total:.1f} N·s")
