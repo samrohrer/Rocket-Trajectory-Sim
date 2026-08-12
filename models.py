@@ -71,38 +71,6 @@ def load_cd_curve(filepath: str) -> CdCurve:
         mach_numbers=mach_numbers
     )
 
-class Rocket:
-    """Records the rocket attributes associated with the rocket body and motor
-    Holds current values such as mass and historical values that are stored in lists"""
-    def __init__(self, drag_coefficient: float, cross_sec_area: float, dry_mass: float, motor: Motor) -> None:
-        self.drag_coefficient: float = drag_coefficient
-        self.cross_sec_area: float = cross_sec_area
-        self.dry_mass: float = dry_mass
-        self.propellant_mass: float = motor.propellant_mass
-        self.thrust_times: np.ndarray = motor.times
-        self.thrust_values: np.ndarray = motor.thrusts
-        self.impulse_total: float = motor.impulse_total
-
-    def get_thrust_at(self, t: float) -> float:
-        """Determines the thrust value of the simulation at a given time using np.interp function, interpolating within the motor's thrust curve data."""
-        return np.interp(t, self.thrust_times, self.thrust_values, right=0)
-
-    def calculate_mass(self, impulse: float) -> float:
-        """Calculates the variable mass of the rocket during flight simulation using a mass depletion model: Mass depletes proportionally to consumed impulse
-        Propellant mass is added to the total mass of the rocket, using a shrinking value until the impulse equation cancels out and reaches the total impulse"""
-        mass = self.dry_mass + self.propellant_mass * np.clip((1 - impulse / self.impulse_total), 0, 1)
-        return mass
-
-    def calculate_drag(self, density: float, velocity: float) -> float:
-        """Calculates aerodynamic drag force using drag = Cd * density * velocity^2 / 2 * cross_sec_area
-        Drag opposes motion, so the sign is flipped opposite to the current direction of velocity"""
-        drag: float = self.drag_coefficient * density * velocity ** 2 / 2 * self.cross_sec_area
-        if velocity > 0:
-            drag = -drag
-        else:
-            drag = +drag
-        return drag
-
 class Environment:
     """Records the atmospheric and gravitational fields that the rocket experiences during flight"""
     def __init__(self, density_sea_level: float, atmospheric_scale_height: float, g: float) -> None:
@@ -133,6 +101,46 @@ class Environment:
         T = self.calculate_temperature(altitude)
         a = 20.01 * np.sqrt(T)
         return a
+
+class Rocket:
+    """Records the rocket attributes associated with the rocket body and motor
+    Holds current values such as mass and historical values that are stored in lists"""
+    def __init__(self, cd_curve: CdCurve, cross_sec_area: float, dry_mass: float, motor: Motor) -> None:
+        self.mach_numbers: float = cd_curve.mach_numbers
+        self.drag_coefficients: float = cd_curve.drag_coefficient
+        self.cross_sec_area: float = cross_sec_area
+        self.dry_mass: float = dry_mass
+        self.propellant_mass: float = motor.propellant_mass
+        self.thrust_times: np.ndarray = motor.times
+        self.thrust_values: np.ndarray = motor.thrusts
+        self.impulse_total: float = motor.impulse_total
+
+    def get_drag_coefficient(self, mach_number: float) -> float:
+        """Determines the drag coefficient of the simulation at a given Mach number using np.interp function, interpolating within the rocket's drag curve data."""
+        return np.interp(mach_number, self.mach_numbers, self.drag_coefficients)
+
+    def get_thrust_at(self, t: float) -> float:
+        """Determines the thrust value of the simulation at a given time using np.interp function, interpolating within the motor's thrust curve data."""
+        return np.interp(t, self.thrust_times, self.thrust_values, right=0)
+
+    def calculate_mass(self, impulse: float) -> float:
+        """Calculates the variable mass of the rocket during flight simulation using a mass depletion model: Mass depletes proportionally to consumed impulse
+        Propellant mass is added to the total mass of the rocket, using a shrinking value until the impulse equation cancels out and reaches the total impulse"""
+        mass = self.dry_mass + self.propellant_mass * np.clip((1 - impulse / self.impulse_total), 0, 1)
+        return mass
+
+    def calculate_drag(self, environment: Environment, altitude: float, density: float, velocity: float) -> float:
+        """Obtains mach number from velocity and speed of sound and drag coefficient from the rocket's drag curve
+        Calculates aerodynamic drag using the formula: Drag = drag_coefficient * density * velocity^2 / 2 * cross_sectional_area
+        Drag opposes motion, so the sign is flipped opposite to the current direction of velocity"""
+        mach_number = abs(velocity) / environment.calculate_speed_of_sound(altitude)
+        drag_coefficient = self.get_drag_coefficient(mach_number)
+        drag = drag_coefficient * density * velocity**2 / 2 * self.cross_sec_area
+        if velocity > 0:
+            drag = -drag
+        else:
+            drag = +drag
+        return drag
 
 class FlightState:
     """Records the flight values associated with the rocket's flight simulation state
