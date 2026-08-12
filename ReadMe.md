@@ -13,6 +13,8 @@ A 1D rocket flight trajectory simulator built from scratch in Python, modeling a
 - Convergence-validated timestep (`dt = 0.01s`)
 - Config file loading and .eng parsing for motor files
 - Monte Carlo dispersion analysis for apogee and max velocity on 1000 trials of simulated flight with different variations in design
+- Mach-dependent Cd curve implemented
+    - ISA temperature and speed-of-sound model used for calculations in Environment
 
 
 ## Validation
@@ -33,24 +35,26 @@ was the simulation not having a launch pad, requiring an artificial 30 m/s
 initial velocity to run. Fixing that brought the apogee error within 0.4% and the 
 peak velocity within less than a hundreth of a percent of OpenRocket.
 
+Phase 9 update: Introducing the Mach-dependent Cd curve shifted apogee from 2841.2 m to 2871.9 m (OpenRocket: 2853 m), moving error from -0.4% to +0.66% — still within acceptable bounds, and expected given the curve's lower average Cd (~0.44) across most of the subsonic coast versus the flat 0.52 constant it replaced.
+
 Full methodology and resolved discrepancies:
 [VALIDATION.md](VALIDATION.md)
 
 ## Architecture
 
 ```
-Rocket          # Fixed vehicle/motor properties + thrust curve lookup table
-Environment     # Atmospheric model (density, gravity)
+Rocket          # Vehicle/motor properties, thrust curve, and Mach-dependent drag coefficient lookup
+Environment     # Atmospheric model (density, gravity, temperature, speed of sound)
 FlightState     # Time-evolving simulation state + full flight history
 ```
 
 ## Status
 
-Core simulation complete, monte carlo dispersion analysis feature implemented for apogee and max velocity.
+Core simulation complete, monte carlo dispersion analysis feature implemented for apogee and max velocity, and Mach-dependent Cd Curve added
 
 **Roadmap:**
-- Done: config-file loading, .eng motor parsing, Monte Carlo dispersion analysis
-- Next: Mach-Dependent Drag Curve, Stretch Goals (Parachute deployment & RK4 Integration)
+- Done: config-file loading, .eng motor parsing, Monte Carlo dispersion analysis, Mach-Dependent Drag Curve
+- Next: Stretch Goals (Parachute deployment & RK4 Integration)
 - Final Phase: GitHub and Project Polishing 
 
 ## Tech Stack

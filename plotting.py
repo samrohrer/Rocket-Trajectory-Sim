@@ -46,8 +46,7 @@ def plot_flight_summary(state: FlightState, rocket: Rocket) -> None:
     axs[0, 0].legend()
     axs[2, 1].axis("off")
     plt.tight_layout()
-    plt.show()
-
+    
 def plot_monte_carlo_results(apogee_list: list[float], max_velocity_list: list[float]) -> None:
     """Plots histograms of apogee and max velocity results from Monte Carlo simulation."""
     apogee_mean = np.mean(apogee_list)
@@ -76,4 +75,19 @@ def plot_monte_carlo_results(apogee_list: list[float], max_velocity_list: list[f
     axs[1].legend()
 
     plt.tight_layout()
-    plt.show()
+
+def plot_cd_curve(rocket: Rocket, state: FlightState) -> None:
+    """Plots the drag coefficient curve of the rocket and overlays the flight data points."""
+    flight_cd = []
+    for mach in state.mach_list:
+        flight_cd.append(rocket.get_drag_coefficient(mach))
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(rocket.mach_numbers, rocket.drag_coefficients, label='Interoplated Cd Curve', color='blue')
+    plt.scatter(state.mach_list, flight_cd, color='orange', label='Flight Data Points', s=5, alpha=0.5)
+    plt.axvline(x=max(state.mach_list), color='red', linestyle='--', label=f'Peak Mach: {max(state.mach_list):.2f}')
+    plt.xlabel('Mach Number')
+    plt.ylabel('Drag Coefficient (Cd)')
+    plt.title('Drag Coefficient vs Mach Number')
+    plt.legend()
+    plt.grid(True)
